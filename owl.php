@@ -60,27 +60,6 @@ function get_useragent_type()
     return 'default';
 }
 
-function render_single_data_element($webpart_name, $data)
-{
-    render_('webparts', $webpart_name, $data);
-}
-
-function render($webpart_name, $webpart_data = array()) {
-    render_single_data_element($webpart_name, $webpart_data);
-}
-
-function _render_single_data_element($data, $key, $webpart_name) {
-	render_single_data_element($webpart_name, $data);
-}
-
-function render_list($webpart_name, $webpart_data) {
-	array_walk($webpart_data, '_render_single_data_element', $webpart_name);
-}
-
-function load_lib($lib_name) {
-    return load_('libs', $lib_name);
-}
-
 function get_filter_path($handler_path) {
     return dirname($handler_path).'/_filters.'.basename($handler_path);
 }
