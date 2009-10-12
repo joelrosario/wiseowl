@@ -133,7 +133,7 @@ function initialize_filepath_stack() {
 }
 
 function load_owl_config() {
-    $config_path = dirname(dirname(__FILE__)).'/owl.config.php';
+    $config_path = dirname(dirname(__FILE__)).'/wiseowl.config.php';
 
     if (file_exists($config_path))
         include($config_path);
