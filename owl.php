@@ -97,9 +97,6 @@ function hand_over_to($resource) {
         if(run_filter_in_file('_before', 'all/'.dirname($resource), full_home_path('', '_filters')) == 'stop')
             return 'stop';
 
-        if(run_filter('_before', $resource, $handler_path) == 'stop')
-            return 'stop';
-
 		include($handler_path);
 
         pop_file();
@@ -148,8 +145,13 @@ function render_($type, $path, $data) {
 }
 
 function find_and_load($type, $resource_path, $data, $strategy) {
-    if(!load_file(full_home_path($type, $resource_path), $data, $strategy))
-        return load_file(full_root_path($type, $resource_path), $data, $strategy);
+    $home_handler_path = full_home_path($type, $resource_path);
+
+    if(!load_file($home_handler_path, $data, $strategy, curry('run_filter', '_before', $resource_path, $home_handler_path)))
+    {
+        $root_handler_path = full_root_path($type, $resource_path);
+        return load_file($root_handler_path, $data, $strategy, curry('run_filter', '_before', $resource_path, $root_handler_path));
+    }
 
     return true;
 }
@@ -183,17 +185,44 @@ function endswith($str, $ending) {
 	return true;
 }
 
-function load_file($filepath, $data, $strategy = '_require') {
+function load_file($filepath, $data, $strategy = '_require', $pre_processor = false, $post_processor = false) {
     if(file_exists($filepath))
     {
         push_file($filepath);
 
+        if(execute_curried_func($pre_processor) == 'stop') {
+            pop_file();
+            return 'stop';
+        }
+
         $strategy($filepath, $data);
+
+        if(execute_curried_func($post_processor) == 'stop') {
+            pop_file();
+            return 'stop';
+        }
 
         pop_file();
 
         return true;
     }
+
+    return false;
+}
+
+function curry() {
+    $args = func_get_args();
+
+    $callable = array();
+    $callable['function'] = $args[0];
+    $callable['arguments'] = array_slice($args, 1);
+
+    return $callable;
+}
+
+function execute_curried_func($curried_func = false) {
+    if($curried_func)
+        return call_user_func_array($curried_func['function'], $curried_func['arguments']);
 
     return false;
 }
