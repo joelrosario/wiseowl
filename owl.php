@@ -85,33 +85,16 @@ function get_requested_resource() {
 }
 
 function hand_over_to($resource) {
-    global $wiseowl_requested_resource;
-    $wiseowl_requested_resource = $resource;
+}
 
-    $handler_path = full_root_path('handlers', $resource);
+function dispatch() {
+    $resource = get_requested_resource();
 
-	if (file_exists($handler_path))
-    {
-        push_file($handler_path);
-
-        if(run_filter_in_file('_before', 'all/'.dirname($resource), full_home_path('', '_filters')) == 'stop')
-            return 'stop';
-
-		include($handler_path);
-
-        pop_file();
-    }
-	else
-	{
+    if (!load_('handlers', $resource)) {
 		header('HTTP/1.1 404 No handle');
 		header('Content-Type: text/plain');
 		echo "I couldn't locate a handler for $resource. I'm sorry, so sorry. What can I say.";
 	}
-}
-
-function dispatch() {
-    $resource = $_GET['_wiseowl_path'];
-    hand_over_to($resource);
 }
 
 function content($relative_content_path) {
@@ -122,6 +105,9 @@ function initialize_application() {
 	session_start();
     initialize_filepath_stack();
     load_owl_config();
+
+    global $wiseowl_requested_resource;
+    $wiseowl_requested_resource = $_GET['_wiseowl_path'];
 }
 
 function initialize_filepath_stack() {
